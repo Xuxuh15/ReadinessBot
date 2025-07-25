@@ -3,7 +3,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+import sys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
+import time
+
+
+
+
+
 
 chrome_options = Options()
 
@@ -16,21 +24,10 @@ chrome_options = Options()
 #driver = webdriver.Chrome(options=chrome_options)
 driver = webdriver.Chrome()
 
-driver.get("https://docs.google.com/forms/d/e/1FAIpQLSdhcHRqJx-SB1-mhr8mJ6yStqDSgt2XeP0sqWwe-_j8vrh5ZA/viewform")
+url = "https://docs.google.com/forms/d/e/1FAIpQLSdhcHRqJx-SB1-mhr8mJ6yStqDSgt2XeP0sqWwe-_j8vrh5ZA/viewform"
+driver.get(url)
 
-# Now Selenium will open Chrome with your profile, keeping your logged-in session\
-
-name = "<input type='hidden' name='entry.584514674' value='John Hilton'>"
-comment = "<input type='hidden' name='entry.965250582' value='hello'>"
-sleep = "<input type='hidden' name='entry.1340191238' value='1'>"
-soreness = "<input type='hidden' name='entry.1160513184' value='1'>"
-mood = "<input type='hidden' name='entry.850635128' value='1'>"
-energy = "<input type='hidden' name='entry.850635128' value='1'>"
-performance = "<input type='hidden' name='entry.24355936' value='1'>"
-body_group = "<input type='hidden' name='entry.1475504717' value='Head'>"
-
-
-
+# Selenium will launch chrome with your default profile
 
 
 name = 'John Hilton'
@@ -39,35 +36,78 @@ soreness_score = 7
 mood_score = 7
 energy_score = 7
 performance_score = 6
-body_group_selection = 'ankle'
-comment = ''
+muscle_groups = ["Ankles"]  
+comment = 'This was written by a bot (╯°□°）╯︵ ┻━┻'
+
+root = None 
 
 
 
-children1 = driver.find_elements(By.CSS_SELECTOR, "div.Qr7Oae")
-print(len(children1))
 
-option = driver.find_element(By.CSS_SELECTOR, "div[data-value='John Hilton']")
-driver.execute_script("arguments[0].click();", option)
+try:
+    root = driver.find_elements(By.CSS_SELECTOR, "div.Qr7Oae")
+    if len(root) != 8 :
+        sys.exit(4)
+except Exception as e:
+    sys.exit(3)
 
 
-sleep_radio_button = children1[1].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{sleep_score}']")
+wait = WebDriverWait(driver, 10)
+
+
+# 1. Open the list box (dropdown)
+list_box = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[jsname='W85ice']")))
+list_box.click()
+# Prevent blur-triggering interactions by using JS to scroll into view only
+driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", list_box)
+time.sleep(0.5)  # Wait for the dropdown to fully render
+input_field = driver.switch_to.active_element
+for i in range(0,7):
+    time.sleep(1)
+    if i == 6:
+        action = ActionChains(driver)
+        action.send_keys(Keys.ARROW_DOWN).pause(0.4).send_keys(Keys.ENTER).perform()
+    else:
+          input_field.send_keys(Keys.ARROW_DOWN)
+
+
+  
+    
+input_field.send_keys(Keys.ENTER)
+
+
+selected_option = driver.find_element(By.CSS_SELECTOR, "div[data-value='John Hilton']")
+print("Selected:", selected_option.get_attribute("aria-selected"))  # Should be "true"
+
+
+
+
+
+
+
+
+# Sleep Section
+sleep_radio_button = root[1].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{sleep_score}']")
 print(f"Sleep Score: {sleep_radio_button.get_attribute('data-value')}")
 sleep_radio_button.click()
 
-mood_radio_button = children1[2].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{mood_score}']")
+# Mood Section
+mood_radio_button = root[2].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{mood_score}']")
 print(f"Mood Score: {mood_radio_button.get_attribute('data-value')}")
 mood_radio_button.click()
 
-soreness_radio_button = children1[3].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{soreness_score}']")
+# Soreness Section
+soreness_radio_button = root[3].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{soreness_score}']")
 print(f"Soreness Score: {soreness_radio_button.get_attribute('data-value')}")
 soreness_radio_button.click()
 
-energy_radio_button = children1[4].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{energy_score}']")
+# Energy Section
+energy_radio_button = root[4].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{energy_score}']")
 print(f"Energy Score: {energy_radio_button.get_attribute('data-value')}")
 energy_radio_button.click()
 
-performance_radio_button = children1[5].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{performance_score}']")
+# Performance Section
+performance_radio_button = root[5].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{performance_score}']")
 print(f"Performance Score: {energy_radio_button.get_attribute('data-value')}")
 performance_radio_button.click()
 
@@ -75,16 +115,15 @@ performance_radio_button.click()
 
 
 
-body_parts = ["Head", "Legs", "Arms"]  # your target strings
 
 # Build XPath with OR for data-answer-value attributes
-xpath_expr = " or ".join([f"@data-answer-value='{part}'" for part in body_parts])
+xpath_expr = " or ".join([f"@data-answer-value='{part}'" for part in muscle_groups])
 
 # Select any element with matching data-answer-value attribute
 full_xpath = f"//*[{xpath_expr}]"
 
 # Find matching elements
-elements = children1[6].find_elements(By.XPATH, full_xpath)
+elements = root[6].find_elements(By.XPATH, full_xpath)
 # Filter visible and interact
 for el in elements:
     if el.is_displayed():
@@ -92,21 +131,22 @@ for el in elements:
         el.click()
 
 
+#Fill in the comment section
+comment_field = root[7].find_element(By.CSS_SELECTOR, f"input[jsname='YPqjbf']")
+print(comment_field.tag_name)
+comment_field.send_keys(comment)
+print(f"Comment Field: {comment_field.get_attribute('value')}")
+
+
+#submit_button = driver.find_element(By.CSS_SELECTOR, "div[role='button'][jsname='M2UYVd']")
+#submit_button.click()
+
+input("Press Enter to close the browser...")  # wait until I press enter
+driver.quit()
 
 
 
-          
 
-
-
-
-list_item = driver.find_element(By.CSS_SELECTOR, "input[type='hidden']")
-print(list_item)
-print(list_item.tag_name)
-children = driver.find_elements(By.CSS_SELECTOR, "div.child-class")
-
-
-print(len(children))
 
 
 
