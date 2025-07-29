@@ -15,13 +15,7 @@ from twilio.rest import Client
 
 
 
-name = os.getenv("NAME")
-sleep_score = 7
-soreness_score = 7
-mood_score = 7
-energy_score = 7
-performance_score = 6
-muscle_groups = ["Ankles"]  
+name = os.getenv("NAME") 
 comment = 'This was written by a bot (╯°□°）╯︵ ┻━┻'
 
 
@@ -42,6 +36,7 @@ start_time = time.time()
 msg_received = False
 message = None
 timeout = 1300
+comment = ''
 # Wait for a readiness message to be sent in the morning
 while not msg_received:
 
@@ -56,15 +51,27 @@ while not msg_received:
         for msg in message:
             print(msg.direction)
             if msg.direction.startswith("inbound") and msg.date_sent.date() == today:
-                unicode = msg.body.strip()
+                sections = msg.body.split(':')
+                unicode = sections[0].strip()
                 readiness_preset = presets[unicode]
+                print(unicode)
+                if(len(sections) > 1):
+                    muscle_groups = sections[1].split((","))
+                    muscle_groups= [muscle.capitalize() for muscle in muscle_groups]
+                    print(muscle_groups)
+                    readiness_preset['muscle_groups'] = muscle_groups
+                if(len(sections) > 2):
+                    comment = sections[2]
+                    print(comment)
+                    readiness_preset['comment'] = comment
+               
                 msg_received = True
                 break
     except Exception as e:
         pass
     if not msg_received:
           time.sleep(300)  # check every 5 minutes if no message recceived
-  
+
 
 chrome_options = Options()
 
@@ -125,30 +132,31 @@ while failure_count > 0:
 
 
 # Sleep Section
-sleep_radio_button = root[1].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{sleep_score}']")
+sleep_radio_button = root[1].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{readiness_preset['sleep_quality']}']")
 print(f"Sleep Score: {sleep_radio_button.get_attribute('data-value')}")
 sleep_radio_button.click()
 
 # Mood Section
-mood_radio_button = root[2].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{mood_score}']")
+mood_radio_button = root[2].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{readiness_preset['mood']}']")
 print(f"Mood Score: {mood_radio_button.get_attribute('data-value')}")
 mood_radio_button.click()
 
 # Soreness Section
-soreness_radio_button = root[3].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{soreness_score}']")
+soreness_radio_button = root[3].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{readiness_preset['soreness']}']")
 print(f"Soreness Score: {soreness_radio_button.get_attribute('data-value')}")
 soreness_radio_button.click()
 
 # Energy Section
-energy_radio_button = root[4].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{energy_score}']")
+energy_radio_button = root[4].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{readiness_preset['energy']}']")
 print(f"Energy Score: {energy_radio_button.get_attribute('data-value')}")
 energy_radio_button.click()
 
 # Performance Section
-performance_radio_button = root[5].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{performance_score}']")
+performance_radio_button = root[5].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{readiness_preset['performance']}']")
 print(f"Performance Score: {energy_radio_button.get_attribute('data-value')}")
 performance_radio_button.click()
 
+muscle_groups = readiness_preset['muscle_groups']
 
 # Build XPath with OR for data-answer-value attributes
 xpath_expr = " or ".join([f"@data-answer-value='{part}'" for part in muscle_groups])
@@ -167,8 +175,7 @@ for el in elements:
 
 #Fill in the comment section
 comment_field = root[7].find_element(By.CSS_SELECTOR, f"input[jsname='YPqjbf']")
-print(comment_field.tag_name)
-comment_field.send_keys(comment)
+comment_field.send_keys(f"{readiness_preset['comment']}")
 print(f"Comment Field: {comment_field.get_attribute('value')}")
 
 
