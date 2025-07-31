@@ -153,7 +153,7 @@ energy_radio_button.click()
 
 # Performance Section
 performance_radio_button = root[5].find_element(By.CSS_SELECTOR, f"div[jscontroller='EcW08c'][data-value='{readiness_preset['performance']}']")
-print(f"Performance Score: {energy_radio_button.get_attribute('data-value')}")
+print(f"Performance Score: {performance_radio_button.get_attribute('data-value')}")
 performance_radio_button.click()
 
 muscle_groups = readiness_preset['muscle_groups']
@@ -179,8 +179,8 @@ comment_field.send_keys(f"{readiness_preset['comment']}")
 print(f"Comment Field: {comment_field.get_attribute('value')}")
 
 
-#submit_button = driver.find_element(By.CSS_SELECTOR, "div[role='button'][jsname='M2UYVd']")
-#submit_button.click()
+submit_button = driver.find_element(By.CSS_SELECTOR, "div[role='button'][jsname='M2UYVd']")
+submit_button.click()
 
 input("Press Enter to close the browser...")  # wait until I press enter
 driver.quit()
