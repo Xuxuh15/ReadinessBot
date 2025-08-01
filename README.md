@@ -28,10 +28,11 @@
 
 ```
 readinessbot/
-├── main.py # Core logic for polling, parsing, and submitting
+├── readiness.py # executes the form_runner and texts results to user
 ├── presets.py # Your custom emoji-to-form presets
 ├── form_handler.py # Selenium logic to interact with the Google Form
-├── twilio_handler.py # Handles SMS send/receive with Twilio
+|── form_runner.py # executes the form handler methods in order and handles exceptions
+├── twilio_client.py # Handles SMS send/receive with Twilio
 ├── .env # Configuration values (e.g. timeout, polling interval)
 └── README.md # This file
 ```
